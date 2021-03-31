@@ -102,8 +102,8 @@ void  BSP_sensor_Init(void)
   BSP_TEMPERATURE_Init(HTS221_T_0, &TEMPERATURE_handle);
   BSP_PRESSURE_Init(PRESSURE_SENSORS_AUTO, &PRESSURE_handle);
   BSP_MAGNETO_Init( MAGNETO_SENSORS_AUTO, &MAGNETO_handle );
-  BSP_ACCELERO_Init( ACCELERO_SENSORS_AUTO, &ACCELERO_handle );
-  BSP_GYRO_Init( GYRO_SENSORS_AUTO, &GYRO_handle );
+  BSP_ACCELERO_Init( LSM6DS0_X_0, &ACCELERO_handle );
+  BSP_GYRO_Init( LSM6DS0_X_0, &GYRO_handle );
 
   /* Enable sensors */
   BSP_HUMIDITY_Sensor_Enable(HUMIDITY_handle);
