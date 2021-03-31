@@ -248,6 +248,11 @@ static void LORA_HasJoined(void)
   PRINTF("JOINED\n\r");
 #endif
   LORA_RequestClass(LORAWAN_DEFAULT_CLASS);
+  
+  MibRequestConfirm_t mibReq;
+  mibReq.Type = MIB_CHANNELS_DATARATE;
+  mibReq.Param.ChannelsDatarate = LORAWAN_DEFAULT_DATA_RATE;
+  LoRaMacMibSetRequestConfirm( &mibReq );
 }
 
 static void ConvertGaussToDegree(sensor_t *sensor_data)
