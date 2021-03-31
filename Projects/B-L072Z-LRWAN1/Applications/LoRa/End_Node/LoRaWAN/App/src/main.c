@@ -31,18 +31,6 @@
 /* Private define ------------------------------------------------------------*/
 
 #define LORAWAN_MAX_BAT   254
-
-/*!
- * CAYENNE_LPP is myDevices Application server.
- */
-//#define CAYENNE_LPP
-#define LPP_DATATYPE_DIGITAL_INPUT  0x0
-#define LPP_DATATYPE_DIGITAL_OUTPUT 0x1
-#define LPP_DATATYPE_HUMIDITY       0x68
-#define LPP_DATATYPE_TEMPERATURE    0x67
-#define LPP_DATATYPE_BAROMETER      0x73
-#define LPP_DATATYPE_ACCELERO       0x71
-#define LPP_DATATYPE_GYRO           0x86
 #define LPP_APP_PORT 99
 #define MAG_LPF_FACTOR  0.4f
 #define ACC_LPF_FACTOR  0.1f
@@ -118,7 +106,7 @@ static void LORA_ConfirmClass(DeviceClass_t Class);
 static void LORA_TxNeeded(void);
 
 /* calculate MagValue from magneto value*/
-static void CalcMagValue(sensor_t *sensor_data);
+static void ConvertGaussToDegree(sensor_t *sensor_data);
 
 /* callback to get the battery level in % of full charge (254 full charge, 0 no charge)*/
 static uint8_t LORA_GetBatteryLevel(void);
@@ -207,9 +195,6 @@ int main(void)
   /*Disbale Stand-by mode*/
   LPM_SetOffMode(LPM_APPLI_Id, LPM_Disable);
 
-  PRINTF("APP_VERSION= %02X.%02X.%02X.%02X\r\n", (uint8_t)(__APP_VERSION >> 24), (uint8_t)(__APP_VERSION >> 16), (uint8_t)(__APP_VERSION >> 8), (uint8_t)__APP_VERSION);
-  PRINTF("MAC_VERSION= %02X.%02X.%02X.%02X\r\n", (uint8_t)(__LORA_MAC_VERSION >> 24), (uint8_t)(__LORA_MAC_VERSION >> 16), (uint8_t)(__LORA_MAC_VERSION >> 8), (uint8_t)__LORA_MAC_VERSION);
-
   /* Configure the Lora Stack*/
   LORA_Init(&LoRaMainCallbacks, &LoRaParamInit);
 
@@ -265,7 +250,7 @@ static void LORA_HasJoined(void)
   LORA_RequestClass(LORAWAN_DEFAULT_CLASS);
 }
 
-static void CalcMagValue(sensor_t *sensor_data)
+static void ConvertGaussToDegree(sensor_t *sensor_data)
 {
   float MAG_X_Comp, MAG_Y_Comp, ACC_X_Norm, ACC_Y_Norm, pitch, roll;
   SensorAxesRaw_t magnetos  = { 0, 0, 0 };
@@ -361,89 +346,30 @@ static void Send(void *context)
 #endif
 
   BSP_sensor_Read(&sensor_data);
-  CalcMagValue(&sensor_data);
+  ConvertGaussToDegree(&sensor_data);
 
-  PRINTF("Temperature [Celsius]: %.2f\n", sensor_data.temperature);
-  PRINTF("Humidity [%%]: %.2f\n", sensor_data.humidity);
-  PRINTF("Pressure [hPa]: %.2f\n", sensor_data.pressure);
-  PRINTF("Accelerometer [x,y,z]: [%d, %d, %d]\n", sensor_data.accelero.AXIS_X, sensor_data.accelero.AXIS_Y, sensor_data.accelero.AXIS_Z);
-  PRINTF("Gyroscope [x,y,z]: [%d, %d, %d]\n", sensor_data.gyro.AXIS_X, sensor_data.gyro.AXIS_Y, sensor_data.gyro.AXIS_Z);
-  PRINTF("Magnetometer [Gauss]: %.2f\n", MagValue);
-
-#ifdef CAYENNE_LPP
-  uint8_t cchannel = 0;
-  temperature       = (int16_t)(sensor_data.temperature * 10);     /* in °C * 10 */
-  pressure          = (uint16_t)(sensor_data.pressure * 100 / 10); /* in hPa / 10 */
-  humidity          = (uint16_t)(sensor_data.humidity * 2);        /* in %*2     */
-  accelero.AXIS_X   = (int16_t)( sensor_data.accelero.AXIS_X  * 1000 );
-  accelero.AXIS_Y   = (int16_t)( sensor_data.accelero.AXIS_Y  * 1000 );
-  accelero.AXIS_Z   = (int16_t)( sensor_data.accelero.AXIS_Z  * 1000 );
-  gyro.AXIS_X       = (int16_t)( sensor_data.gyro.AXIS_X  * 100 );
-  gyro.AXIS_Y       = (int16_t)( sensor_data.gyro.AXIS_Y  * 100 );
-  gyro.AXIS_Z       = (int16_t)( sensor_data.gyro.AXIS_Z  * 100 );
-  magneto           = (int16_t)( MagValue * 100 );
-
-  uint32_t i = 0;
-
-  batteryLevel = LORA_GetBatteryLevel();                     /* 1 (very low) to 254 (fully charged) */
-
-  AppData.Port = LPP_APP_PORT;
-
-  // Change DR to support payload size
-
-  // PRESSURE SENSOR
-  AppData.Buff[i++] = cchannel++;
-  AppData.Buff[i++] = LPP_DATATYPE_BAROMETER;
-  AppData.Buff[i++] = (pressure >> 8) & 0xFF;
-  AppData.Buff[i++] = pressure & 0xFF;
-  // TEMPERATURE SENSOR
-  AppData.Buff[i++] = cchannel++;
-  AppData.Buff[i++] = LPP_DATATYPE_TEMPERATURE;
-  AppData.Buff[i++] = (temperature >> 8) & 0xFF;
-  AppData.Buff[i++] = temperature & 0xFF;
-  // HUMIDITY SENSOR
-  AppData.Buff[i++] = cchannel++;
-  AppData.Buff[i++] = LPP_DATATYPE_HUMIDITY;
-  AppData.Buff[i++] = humidity & 0xFF;
-  // ACCELERO SENSOR
-  AppData.Buff[i++] = cchannel++;
-  AppData.Buff[i++] = LPP_DATATYPE_ACCELERO;
-  AppData.Buff[i++] = ( accelero.AXIS_X >> 8 ) & 0xFF;
-  AppData.Buff[i++] = accelero.AXIS_X & 0xFF;
-  AppData.Buff[i++] = ( accelero.AXIS_Y >> 8 ) & 0xFF;
-  AppData.Buff[i++] = accelero.AXIS_Y & 0xFF;
-  AppData.Buff[i++] = ( accelero.AXIS_Z >> 8 ) & 0xFF;
-  AppData.Buff[i++] = accelero.AXIS_Z & 0xFF;
-  // GYROSCOPE SENSOR
-  AppData.Buff[i++] = cchannel++;
-  AppData.Buff[i++] = LPP_DATATYPE_GYRO;
-  AppData.Buff[i++] = ( gyro.AXIS_X >> 8 ) & 0xFF;
-  AppData.Buff[i++] = gyro.AXIS_X & 0xFF;
-  AppData.Buff[i++] = ( gyro.AXIS_Y >> 8 ) & 0xFF;
-  AppData.Buff[i++] = gyro.AXIS_Y & 0xFF;
-  AppData.Buff[i++] = ( gyro.AXIS_Z >> 8 ) & 0xFF;
-  AppData.Buff[i++] = gyro.AXIS_Z & 0xFF;
-  // ANALOG MAGNETO SENSOR : send value range -180 to 180 degree, North is zero degree.
-  AppData.Buff[i++] = cchannel++;
-  AppData.Buff[i++] = LPP_DATATYPE_ANALOG_INPUT;
-  AppData.Buff[i++] = ( magneto >> 8 ) & 0xFF;
-  AppData.Buff[i++] = magneto & 0xFF;
-
-#else  /* not CAYENNE_LPP */
+  PRINTF("Temperature: %.2f Celsius\n", sensor_data.temperature);
+  PRINTF("Humidity: %.2f %%\n", sensor_data.humidity);
+  PRINTF("Pressure: %.2f hPa\n", sensor_data.pressure);
+  // PRINTF("Accelerometer [x,y,z]: [%d mg, %d mg, %d mg]\n", sensor_data.accelero.AXIS_X, sensor_data.accelero.AXIS_Y, sensor_data.accelero.AXIS_Z);
+  PRINTF("Accelerometer [x,y,z]: [%.2f g, %.2f g, %.2f g]\n", sensor_data.accelero.AXIS_X/1000.0, sensor_data.accelero.AXIS_Y/1000.0, sensor_data.accelero.AXIS_Z/1000.0);
+  // PRINTF("Gyroscope [x,y,z]: [%d mdps, %d mdps, %d mdps]\n", sensor_data.gyro.AXIS_X, sensor_data.gyro.AXIS_Y, sensor_data.gyro.AXIS_Z);
+  PRINTF("Gyroscope [x,y,z]: [%.2f dps, %.2f dps, %.2f dps]\n", sensor_data.gyro.AXIS_X/1000.0, sensor_data.gyro.AXIS_Y/1000.0, sensor_data.gyro.AXIS_Z/1000.0);
+  PRINTF("Magnetometer: %.2f degrees\n", MagValue);
 
   temperature       = (int16_t)(sensor_data.temperature * 100);         /* in °C * 100 */
-  pressure          = (uint16_t)(sensor_data.pressure * 100 / 10);      /* in hPa / 10 */
-  humidity          = (uint16_t)(sensor_data.humidity * 10);            /* in %*10     */
-  accelero.AXIS_X   = (int16_t)( sensor_data.accelero.AXIS_X  * 1000 );
-  accelero.AXIS_Y   = (int16_t)( sensor_data.accelero.AXIS_Y  * 1000 );
-  accelero.AXIS_Z   = (int16_t)( sensor_data.accelero.AXIS_Z  * 1000 );
-  gyro.AXIS_X       = (int16_t)( sensor_data.gyro.AXIS_X  * 100 );
-  gyro.AXIS_Y       = (int16_t)( sensor_data.gyro.AXIS_Y  * 100 );
-  gyro.AXIS_Z       = (int16_t)( sensor_data.gyro.AXIS_Z  * 100 );
+  pressure          = (uint16_t)(sensor_data.pressure * 10);            /* in hPa * 10 */
+  humidity          = (uint16_t)(sensor_data.humidity * 10);            /* in % *10     */
+  accelero.AXIS_X   = (int16_t)( sensor_data.accelero.AXIS_X );
+  accelero.AXIS_Y   = (int16_t)( sensor_data.accelero.AXIS_Y );
+  accelero.AXIS_Z   = (int16_t)( sensor_data.accelero.AXIS_Z );
+  gyro.AXIS_X       = (int16_t)( sensor_data.gyro.AXIS_X );
+  gyro.AXIS_Y       = (int16_t)( sensor_data.gyro.AXIS_Y );
+  gyro.AXIS_Z       = (int16_t)( sensor_data.gyro.AXIS_Z );
   magneto           = (int16_t)( MagValue * 100 );
   uint32_t i = 0;
 
-  batteryLevel = LORA_GetBatteryLevel();                          /* 1 (very low) to 254 (fully charged) */
+  batteryLevel = LORA_GetBatteryLevel(); /* 1 (very low) to 254 (fully charged) */
 
   AppData.Port = LORAWAN_APP_PORT;
   // PRESSURE SENSOR
@@ -474,7 +400,6 @@ static void Send(void *context)
   AppData.Buff[i++] = magneto & 0xFF;
 
   AppData.Buff[i++] = batteryLevel;
-#endif  /* CAYENNE_LPP */
   AppData.BuffSize = i;
 
   /* delay of 10ms to prevent print errors*/
