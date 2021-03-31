@@ -451,9 +451,9 @@ void LORA_Init (LoRaMainCallback_t *callbacks, LoRaParam_t* LoRaParam )
 #if( OVER_THE_AIR_ACTIVATION != 0 )
 
   PPRINTF( "OTAA\n\r"); 
-  PPRINTF( "DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n\r", HEX8(devEui));
-  PPRINTF( "AppEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n\r", HEX8(joinEui));
-  PPRINTF( "AppKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n\r", HEX16(AppKey));
+  PPRINTF( "DevEui= %02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX8(devEui));
+  PPRINTF( "AppEui= %02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX8(joinEui));
+  PPRINTF( "AppKey= %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX16(AppKey));
 #else
 
 #if (STATIC_DEVICE_ADDRESS != 1)
@@ -463,10 +463,10 @@ void LORA_Init (LoRaMainCallback_t *callbacks, LoRaParam_t* LoRaParam )
   DevAddr = randr( 0, 0x01FFFFFF );
 #endif
   PPRINTF( "ABP\n\r"); 
-  PPRINTF( "DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n\r", HEX8(devEui));
+  PPRINTF( "DevEui= %02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX8(devEui));
   PPRINTF( "DevAdd=  %08X\n\r", DevAddr) ;
-  PPRINTF( "NwkSKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n\r", HEX16(NwkSEncKey));
-  PPRINTF( "AppSKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n\r", HEX16(AppSKey));
+  PPRINTF( "NwkSKey= %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX16(NwkSEncKey));
+  PPRINTF( "AppSKey= %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX16(AppSKey));
 #endif
   LoRaMacPrimitives.MacMcpsConfirm = McpsConfirm;
   LoRaMacPrimitives.MacMcpsIndication = McpsIndication;
@@ -546,7 +546,7 @@ void LORA_Init (LoRaMainCallback_t *callbacks, LoRaParam_t* LoRaParam )
   LoRaMacMibSetRequestConfirm( &mibReq );
                       
   mibReq.Type = MIB_DEVICE_CLASS;
-  mibReq.Param.Class= CLASS_A;
+  mibReq.Param.Class = CLASS_A;
   LoRaMacMibSetRequestConfirm( &mibReq );
 
 #if defined( REGION_EU868 ) || defined( REGION_RU864 ) || defined( REGION_CN779 ) || defined( REGION_EU433 )
