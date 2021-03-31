@@ -243,7 +243,8 @@ static DrvStatusTypeDef LSM6DS0_X_Init( DrvContextTypeDef *handle )
   }
 
   /* Full scale selection */
-  if ( LSM6DS0_X_Set_FS( handle, FS_LOW ) == COMPONENT_ERROR )
+  // if ( LSM6DS0_X_Set_FS( handle, FS_LOW ) == COMPONENT_ERROR )
+  if ( LSM6DS0_X_Set_FS( handle, FS_HIGH ) == COMPONENT_ERROR )
   {
     return COMPONENT_ERROR;
   }
