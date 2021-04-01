@@ -1,0 +1,68 @@
+/* This is a default example for payload parser.
+** The ignore_vars variable in this code should be used to ignore variables
+** from the device that you don't want.
+**
+** Testing:
+** You can do manual tests to this parse by using the Device Emulator. Copy and Paste the following code:
+** [{ "variable": "payload", "value": "0109611395" }]
+**
+*/
+// Add ignorable variables in this array.
+const ignore_vars = ['rf_chain', 'channel', 'modulation', 'app_id', 'dev_id', 'time', 'gtw_trusted', 'port'];
+
+// Remove unwanted variables.
+payload = payload.filter(x => !ignore_vars.includes(x.variable));
+
+function parsePayload(payload_raw) {
+  try {
+    // If your device is sending something different than hex, like base64, just specify it bellow.
+    const buffer = Buffer.from(payload_raw, 'hex');
+
+    // Payload structure
+    // Bytes 0-1 - Pressure
+    // Bytes 2-3 - Temperature
+    // Bytes 4-5 - Humidity
+    // Bytes 6-7 - Accelerometer X axis
+    // Bytes 8-9 - Accelerometer Y axis
+    // Bytes 10-11 - Accelerometer Z axis
+    // Bytes 12-13 - Gyroscope X axis
+    // Bytes 14-15 - Gyroscope Y axis
+    // Bytes 16-17 - Gyroscope Z axis
+    // Bytes 18-19 - Magnometer
+    // Bytes 20 - Battery Voltage
+
+    const data = [
+    { variable: 'pressure', value: (buffer.readUInt8(0) << 8 | buffer.readUInt8(1))/10.0, unit: 'hPa' },
+    { variable: 'temperature', value: (buffer.readInt8(2) << 8 | buffer.readInt8(3))/100.0, unit: 'C' },
+    { variable: 'humidity', value: (buffer.readUInt8(4) << 8 | buffer.readUInt8(5))/10.0, unit: '%' },
+    { variable: 'accel_x_axis', value: (buffer.readInt8(6) << 8 | buffer.readUInt8(7))/1000.0, unit: 'g' },
+    { variable: 'accel_y_axis', value: (buffer.readInt8(8) << 8 | buffer.readUInt8(9))/1000.0, unit: 'g' },
+    { variable: 'accel_z_axis', value: (buffer.readInt8(10) << 8 | buffer.readUInt8(11))/1000.0, unit: 'g' },
+    { variable: 'gyro_x_axis', value: (buffer.readInt8(12) << 8 | buffer.readUInt8(13))/1000.0, unit: 'dps' },
+    { variable: 'gyro_y_axis', value: (buffer.readInt8(14) << 8 | buffer.readUInt8(15))/1000.0, unit: 'dps' },
+    { variable: 'gyro_z_axis', value: (buffer.readInt8(16) << 8 | buffer.readUInt8(17))/1000.0, unit: 'dps' },
+    { variable: 'magnometer', value: (buffer.readInt8(18) << 8 | buffer.readUInt8(19))/100.0, unit: 'degrees' },
+    { variable: 'bat_voltage', value: buffer.readUInt8(20), unit: 'V' },
+    ];
+
+    return data;
+  } catch (e) {
+    console.log(e);
+    // Return the variable parse_error for debugging.
+    return [{ variable: 'parse_error', value: e.message }];
+  }
+}
+
+// Remove unwanted variables.
+payload = payload.filter(x => !ignore_vars.includes(x.variable));
+// Payload is an environment variable. Is where what is being inserted to your device comes in.
+// Payload always is an array of objects. [ { variable, value...}, {variable, value...} ...]
+const payload_raw = payload.find(x => x.variable === 'payload_raw' || x.variable === 'payload' || x.variable === 'data');
+if (payload_raw) {
+  // Get a unique serie for the incoming data.
+  const { value, serie, time } = payload_raw;
+  // Parse the payload_raw to JSON format (it comes in a String format)
+  if (value) {
+      payload = payload.concat(parsePayload(value).map(x => ({ ...x, serie, time: x.time || time })));
+  }
+}
