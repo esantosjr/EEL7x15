@@ -8,7 +8,7 @@
 **
 */
 // Add ignorable variables in this array.
-const ignore_vars = ['rf_chain', 'channel', 'modulation', 'app_id', 'dev_id', 'time', 'gtw_trusted', 'port'];
+const ignore_vars = ['rf_chain', 'channel', 'modulation', 'app_id', 'dev_id', 'time', 'gtw_trusted', 'port', 'delay', 'status_rx1droffset_ack', 'hardware_channel', 'modulation_type', 'packet_id', 'hardware_tmst', 'status_rx2_data_rate_ack', 'header_ack', 'modulation_bandwidth', 'header_version', 'status_power_ack', 'header_confirmed', 'modulation_coderate', 'status_data_rate_ack', 'status_channel_ack', 'gps_alt', 'header_adr', 'rx_time', 'hardware_status', 'gateway', 'encrypted_payload', 'size', 'status_channel_mask_ack', 'hardware_chain', 'duplicate', 'header_adr_ack_req', 'header_type', 'status_channel_mask_ack', 'status_power_ack', 'status_data_rate_ack', 'status_rx2_data_rate_ack', 'status_channel_ack', 'status_rx1droffset_ack'];
 
 // Remove unwanted variables.
 payload = payload.filter(x => !ignore_vars.includes(x.variable));
