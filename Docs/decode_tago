@@ -33,7 +33,7 @@ function parsePayload(payload_raw) {
 
     const data = [
     { variable: 'pressure', value: (buffer.readUInt8(0) << 8 | buffer.readUInt8(1))/10.0, unit: 'hPa' },
-    { variable: 'temperature', value: (buffer.readInt8(2) << 8 | buffer.readInt8(3))/100.0, unit: 'ºC' },
+    { variable: 'temperature', value: (buffer.readInt8(2) << 8 | buffer.readUInt8(3))/100.0, unit: 'ºC' },
     { variable: 'humidity', value: (buffer.readUInt8(4) << 8 | buffer.readUInt8(5))/10.0, unit: '%' },
     { variable: 'accel_x_axis', value: (buffer.readInt8(6) << 8 | buffer.readUInt8(7))/1000.0, unit: 'g' },
     { variable: 'accel_y_axis', value: (buffer.readInt8(8) << 8 | buffer.readUInt8(9))/1000.0, unit: 'g' },
