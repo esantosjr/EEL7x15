@@ -500,7 +500,7 @@ void LORA_Init (LoRaMainCallback_t *callbacks, LoRaParam_t* LoRaParam )
     #error "Please define a region in the compiler options."
 #endif
 
-  if(LoRaParamInit->NetworkServer == 0) // Everynet
+  if(LoRaParamInit->NetworkServer == 1) // Everynet
   {
     uint16_t channelMask[] = { 0x00FF, 0x0000, 0x0000, 0x0000, 0x0001, 0x0000 };
     mibReq.Type = MIB_CHANNELS_MASK;
@@ -510,7 +510,7 @@ void LORA_Init (LoRaMainCallback_t *callbacks, LoRaParam_t* LoRaParam )
     mibReq.Param.ChannelsDefaultMask = channelMask;
     LoRaMacMibSetRequestConfirm( &mibReq );
   } 
-  else if(LoRaParamInit->NetworkServer == 1) // TTN
+  else if(LoRaParamInit->NetworkServer == 2) // TTN
   {
     uint16_t channelMask[] = { 0xFF00, 0x0000, 0x0000, 0x0000, 0x0002, 0x0000 };
     mibReq.Type = MIB_CHANNELS_MASK;

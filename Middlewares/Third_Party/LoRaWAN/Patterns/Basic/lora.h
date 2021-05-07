@@ -126,13 +126,12 @@ typedef struct sLoRaParam
  * @brief Enable or disable a public network
  *
  */
-    bool EnablePublicNetwork;
+    bool EnablePublicNetwork; 
 /*!
- * @brief Network server to connect to {0: Everynet, 1: TTN}
+ * @brief Network server to connect to {1: Everynet, 2: TTN}
  *
  */
     int8_t NetworkServer;
-
 } LoRaParam_t;
 
 /* Lora Main callbacks*/
