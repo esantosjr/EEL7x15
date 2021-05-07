@@ -72,10 +72,10 @@
 #define LORAWAN_APP_DATA_BUFF_SIZE                  64
 /*!
  * Network server to connect to
- *        0: Everynet
- *        1: TTN
+ *        1: Everynet
+ *        2: TTN
  */
-#define LORAWAN_NS                                  0
+#define LORAWAN_FSB                                 2
 
 /*!
  * User application data
@@ -165,7 +165,7 @@ SensorAxesRaw_t ACCELERO_Value_Old  = { 0, 0, 0 };
 static  LoRaParam_t LoRaParamInit = {LORAWAN_ADR_STATE,
                                      LORAWAN_DEFAULT_DATA_RATE,
                                      LORAWAN_PUBLIC_NETWORK,
-                                     LORAWAN_NS
+                                     LORAWAN_FSB
                                     };
 
 /* Private functions ---------------------------------------------------------*/
@@ -425,10 +425,13 @@ static void Send(void *context)
       PRINTF("TX POWER: %d \r\n", mibGet.Param.ChannelsTxPower);
   }
 
-  mibGet.Type  = MIB_CHANNELS_MASK;
-  if( LoRaMacMibGetRequestConfirm( &mibGet ) == LORAMAC_STATUS_OK )
+  if(LoRaParamInit.NetworkServer == 1) // Everynet
   {
-      PRINTF("SUB BAND: %d \r\n", mibGet.Param.ChannelsMask[4]);
+      PRINTF("SUB BAND: %d \r\n", 1);
+  } 
+  else if(LoRaParamInit.NetworkServer == 2) // TTN
+  {
+      PRINTF("SUB BAND: %d \r\n", 2);
   }
 
   LORA_send(&AppData, LORAWAN_DEFAULT_CONFIRM_MSG_STATE);
