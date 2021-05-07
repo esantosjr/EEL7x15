@@ -1,0 +1,19 @@
+function signed(bits, value) { return value & (1 << (bits - 1)) ? value - (1 << bits) : value; }
+
+function decodeUplink(input) {
+  return {
+    data: {
+      pressure: (input.bytes[0] << 8 | input.bytes[1])/10.0,
+      temperature: (input.bytes[2] << 8 | input.bytes[3])/100.0,
+      humidity: (input.bytes[4] << 8 | input.bytes[5])/10.0,
+      accel_x_axis: (signed(8,input.bytes[6]) << 8 | input.bytes[7])/1000.0,
+      accel_y_axis: (signed(8,input.bytes[8]) << 8 | input.bytes[9])/1000.0,
+      accel_z_axis: (signed(8,input.bytes[10]) << 8 | input.bytes[11])/1000.0,
+      gyro_x_axis: (signed(8,input.bytes[12]) << 8 | input.bytes[13])/1000.0,
+      gyro_y_axis: (signed(8,input.bytes[14]) << 8 | input.bytes[15])/1000.0,
+      gyro_z_axis: (signed(8,input.bytes[16]) << 8 | input.bytes[17])/1000.0,
+      magnometer: (signed(8,input.bytes[18]) << 8 | signed(8,input.bytes[19]))/100.0,
+      bat_voltage: input.bytes[20]
+    }
+  };
+}
