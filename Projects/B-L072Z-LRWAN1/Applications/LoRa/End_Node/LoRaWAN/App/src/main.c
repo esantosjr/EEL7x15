@@ -40,9 +40,9 @@
 #endif
 
 /*!
- * Defines the application data transmission duty cycle. 5s, value in [ms].
+ * Defines the application data transmission duty cycle. 2 minutes, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            10000
+#define APP_TX_DUTYCYCLE                            120000
 /*!
  * LoRaWAN Adaptive Data Rate
  * @note Please note that when ADR is enabled the end-device should be static
@@ -71,7 +71,7 @@
  */
 #define LORAWAN_APP_DATA_BUFF_SIZE                  64
 /*!
- * Network server to connect to
+ * Defines the frequency sub-band of the network server to connect to
  *        1: Everynet
  *        2: TTN
  */
