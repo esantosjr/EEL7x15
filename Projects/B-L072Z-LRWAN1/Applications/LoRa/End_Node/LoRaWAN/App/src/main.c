@@ -40,9 +40,9 @@
 #endif
 
 /*!
- * Defines the application data transmission duty cycle. 2 minutes, value in [ms].
+ * Defines the application data transmission duty cycle in minutes
  */
-#define APP_TX_DUTYCYCLE                            120000
+#define APP_TX_DUTYCYCLE                            5
 /*!
  * LoRaWAN Adaptive Data Rate
  * @note Please note that when ADR is enabled the end-device should be static
@@ -72,7 +72,7 @@
 #define LORAWAN_APP_DATA_BUFF_SIZE                  64
 /*!
  * Defines the frequency sub-band of the network server to connect to
- *        1: Everynet
+ *        1: Everynet/Kore
  *        2: TTN
  */
 #define LORAWAN_FSB                                 2
@@ -159,6 +159,11 @@ SensorAxesRaw_t MAG_MAX = { 0X1987, 0, 0X1848 };
 SensorAxesRaw_t MAGNETO_Value_Old   = { 0, 0, 0 };
 SensorAxesRaw_t ACCELERO_Value_Old  = { 0, 0, 0 };
 
+/*!
+ * Controls the number of transmissions when device connects
+ */
+uint8_t upCnt = 0;
+
 /* !
  *Initialises the Lora Parameters
  */
@@ -200,7 +205,7 @@ int main(void)
 
   LORA_Join();
 
-  LoraStartTx(TX_ON_TIMER) ;
+  LoraStartTx(TX_ON_TIMER);
 
   while (1)
   {
@@ -245,7 +250,7 @@ void LoraMacProcessNotify(void)
 static void LORA_HasJoined(void)
 {
 #if( OVER_THE_AIR_ACTIVATION != 0 )
-  PRINTF("JOINED\n\r");
+  PRINTF(" JOIN ACCEPTED\n\r");
 #endif
   LORA_RequestClass(LORAWAN_DEFAULT_CLASS);
   
@@ -338,7 +343,7 @@ static void Send(void *context)
   }
 
   PRINTF("\n########################\n\r");
-  PRINTF("SEND\n\r");
+  PRINTF("SENSORS READING\n\r");
 
 #ifdef USE_B_L072Z_LRWAN1
   TimerInit(&TxLedTimer, OnTimerLedEvent);
@@ -356,9 +361,7 @@ static void Send(void *context)
   PRINTF("Temperature: %.2f Celsius\n", sensor_data.temperature);
   PRINTF("Humidity: %.2f %%\n", sensor_data.humidity);
   PRINTF("Pressure: %.2f hPa\n", sensor_data.pressure);
-  // PRINTF("Accelerometer [x,y,z]: [%d mg, %d mg, %d mg]\n", sensor_data.accelero.AXIS_X, sensor_data.accelero.AXIS_Y, sensor_data.accelero.AXIS_Z);
   PRINTF("Accelerometer [x,y,z]: [%.2f g, %.2f g, %.2f g]\n", sensor_data.accelero.AXIS_X/1000.0, sensor_data.accelero.AXIS_Y/1000.0, sensor_data.accelero.AXIS_Z/1000.0);
-  // PRINTF("Gyroscope [x,y,z]: [%d mdps, %d mdps, %d mdps]\n", sensor_data.gyro.AXIS_X, sensor_data.gyro.AXIS_Y, sensor_data.gyro.AXIS_Z);
   PRINTF("Gyroscope [x,y,z]: [%.2f dps, %.2f dps, %.2f dps]\n", sensor_data.gyro.AXIS_X/1000.0, sensor_data.gyro.AXIS_Y/1000.0, sensor_data.gyro.AXIS_Z/1000.0);
   PRINTF("Magnetometer: %.2f degrees\n", MagValue);
 
@@ -407,33 +410,8 @@ static void Send(void *context)
   AppData.Buff[i++] = batteryLevel;
   AppData.BuffSize = i;
 
-  /* delay of 10ms to prevent print errors*/
-  HAL_Delay(10);
-
   PrintHexBuffer(AppData.Buff, AppData.BuffSize);
- 
-  MibRequestConfirm_t mibGet;
-  mibGet.Type  = MIB_CHANNELS_DATARATE;
-  if( LoRaMacMibGetRequestConfirm( &mibGet ) == LORAMAC_STATUS_OK )
-  {
-      PRINTF("\nDR: %d \r\n", mibGet.Param.ChannelsDatarate);
-  }
-
-  mibGet.Type  = MIB_CHANNELS_TX_POWER;
-  if( LoRaMacMibGetRequestConfirm( &mibGet ) == LORAMAC_STATUS_OK )
-  {
-      PRINTF("TX POWER: %d \r\n", mibGet.Param.ChannelsTxPower);
-  }
-
-  if(LoRaParamInit.NetworkServer == 1) // Everynet
-  {
-      PRINTF("SUB BAND: %d \r\n", 1);
-  } 
-  else if(LoRaParamInit.NetworkServer == 2) // TTN
-  {
-      PRINTF("SUB BAND: %d \r\n", 2);
-  }
-
+   
   LORA_send(&AppData, LORAWAN_DEFAULT_CONFIRM_MSG_STATE);
 
   /* USER CODE END 3 */
@@ -447,7 +425,7 @@ static void PrintHexBuffer( uint8_t *buffer, uint8_t size )
     {
         PRINTF( "%02X ", buffer[i] );
     }
-    PRINTF( "\r\n" );
+    PRINTF( "\r\n\n" );
 }
 
 
@@ -524,6 +502,19 @@ static void LORA_RxData(lora_AppData_t *AppData)
 
 static void OnTxTimerEvent(void *context)
 {
+  if(LORAWAN_FSB == 1) /* Everynet/Kore */
+  {
+    if(upCnt < 5)
+    {
+      upCnt++;
+    }
+    else /* After 5 first transmissions, duty is configured to 1 hour */
+    {
+      TimerInit(&TxTimer, OnTxTimerEvent);    
+      TimerSetValue(&TxTimer, 60*60000); /* duty cycle is configured in milliseconds */ 
+    }
+  }
+
   /*Wait for next tx slot*/
   TimerStart(&TxTimer);
 
@@ -535,9 +526,18 @@ static void LoraStartTx(TxEventType_t EventType)
   if (EventType == TX_ON_TIMER)
   {
     /* send everytime timer elapses */
-    TimerInit(&TxTimer, OnTxTimerEvent);    
-    TimerSetValue(&TxTimer,  APP_TX_DUTYCYCLE);
-    OnTxTimerEvent(NULL);
+    if(LORAWAN_FSB == 1) /* Everynet/Kore. Duty cycle starts with 1 minute */
+    {
+      TimerInit(&TxTimer, OnTxTimerEvent);    
+      TimerSetValue(&TxTimer, 60000); /* duty cycle is configured in milliseconds */
+      OnTxTimerEvent(NULL);
+    } 
+    else 
+    { /* TTN. Duty cycle is defined by APP_TX_DUTYCYCLE variable */
+      TimerInit(&TxTimer, OnTxTimerEvent);    
+      TimerSetValue(&TxTimer, APP_TX_DUTYCYCLE*60000); /* duty cycle is configured in milliseconds */
+      OnTxTimerEvent(NULL);
+    }    
   }
   else
   {
