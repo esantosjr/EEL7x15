@@ -128,7 +128,7 @@ typedef struct sLoRaParam
  */
     bool EnablePublicNetwork; 
 /*!
- * @brief Network server to connect to {1: Everynet, 2: TTN}
+ * @brief Network server to connect to {1: Everynet/Kore, 2: TTN}
  *
  */
     int8_t NetworkServer;

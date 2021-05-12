@@ -453,7 +453,7 @@ void LORA_Init (LoRaMainCallback_t *callbacks, LoRaParam_t* LoRaParam )
   PPRINTF( "OTAA\n\r"); 
   PPRINTF( "DevEui= %02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX8(devEui));
   PPRINTF( "AppEui= %02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX8(joinEui));
-  PPRINTF( "AppKey= %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX16(AppKey));
+  PPRINTF( "AppKey= %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n\n\r", HEX16(AppKey));
 #else
 
 #if (STATIC_DEVICE_ADDRESS != 1)
@@ -466,7 +466,7 @@ void LORA_Init (LoRaMainCallback_t *callbacks, LoRaParam_t* LoRaParam )
   PPRINTF( "DevEui= %02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX8(devEui));
   PPRINTF( "DevAdd=  %08X\n\r", DevAddr) ;
   PPRINTF( "NwkSKey= %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX16(NwkSEncKey));
-  PPRINTF( "AppSKey= %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n\r", HEX16(AppSKey));
+  PPRINTF( "AppSKey= %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n\n\r", HEX16(AppSKey));
 #endif
   LoRaMacPrimitives.MacMcpsConfirm = McpsConfirm;
   LoRaMacPrimitives.MacMcpsIndication = McpsIndication;
@@ -500,7 +500,7 @@ void LORA_Init (LoRaMainCallback_t *callbacks, LoRaParam_t* LoRaParam )
     #error "Please define a region in the compiler options."
 #endif
 
-  if(LoRaParamInit->NetworkServer == 1) // Everynet
+  if(LoRaParamInit->NetworkServer == 1) // Everynet/Kore
   {
     uint16_t channelMask[] = { 0x00FF, 0x0000, 0x0000, 0x0000, 0x0001, 0x0000 };
     mibReq.Type = MIB_CHANNELS_MASK;
