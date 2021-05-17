@@ -258,6 +258,9 @@ static void LORA_HasJoined(void)
   mibReq.Type = MIB_CHANNELS_DATARATE;
   mibReq.Param.ChannelsDatarate = LORAWAN_DEFAULT_DATA_RATE;
   LoRaMacMibSetRequestConfirm( &mibReq );
+
+  /* first uplink right after join accept*/
+  AppProcessRequest = LORA_SET;
 }
 
 static void ConvertGaussToDegree(sensor_t *sensor_data)
