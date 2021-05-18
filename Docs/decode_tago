@@ -41,7 +41,7 @@ function parsePayload(payload_raw) {
     { variable: 'gyro_x_axis', value: (buffer.readInt8(12) << 8 | buffer.readUInt8(13))/1000.0, unit: 'dps' },
     { variable: 'gyro_y_axis', value: (buffer.readInt8(14) << 8 | buffer.readUInt8(15))/1000.0, unit: 'dps' },
     { variable: 'gyro_z_axis', value: (buffer.readInt8(16) << 8 | buffer.readUInt8(17))/1000.0, unit: 'dps' },
-    { variable: 'magnometer', value: (buffer.readInt8(18) << 8 | buffer.readUInt8(19))/100.0, unit: 'degrees' },
+    { variable: 'magnometer', value: (buffer.readUInt8(18) << 8 | buffer.readUInt8(19))/100.0, unit: 'degrees' },
     { variable: 'bat_voltage', value: buffer.readUInt8(20), unit: 'V' },
     ];
 

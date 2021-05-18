@@ -12,7 +12,7 @@ function decodeUplink(input) {
       gyro_x_axis: (signed(8,input.bytes[12]) << 8 | input.bytes[13])/1000.0,
       gyro_y_axis: (signed(8,input.bytes[14]) << 8 | input.bytes[15])/1000.0,
       gyro_z_axis: (signed(8,input.bytes[16]) << 8 | input.bytes[17])/1000.0,
-      magnometer: (signed(8,input.bytes[18]) << 8 | signed(8,input.bytes[19]))/100.0,
+      magnometer: (input.bytes[18] << 8 | input.bytes[19])/100.0,
       bat_voltage: input.bytes[20]
     }
   };
