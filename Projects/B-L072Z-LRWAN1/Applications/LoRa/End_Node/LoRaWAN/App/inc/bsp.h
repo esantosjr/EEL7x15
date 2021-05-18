@@ -38,10 +38,20 @@ Maintainer: Miguel Luis and Gregory Cristian
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 /* Includes ------------------------------------------------------------------*/
+#if defined(SENSOR_ENABLED)
+#if defined (X_NUCLEO_IKS01A1)
 #include "x_nucleo_iks01a1_magneto.h"
 #include "x_nucleo_iks01a1_accelero.h"
 #include "x_nucleo_iks01a1_gyro.h"
+#else  /* X_NUCLEO_IKS01A2 */
+#include "x_nucleo_iks01a2_magneto.h"
+#include "x_nucleo_iks01a2_accelero.h"
+#include "x_nucleo_iks01a2_gyro.h"
+#endif  /* X_NUCLEO_IKS01A1 */
+#endif  /* SENSOR_ENABLED */
+
 /* Exported types ------------------------------------------------------------*/
 
 typedef struct
@@ -49,7 +59,7 @@ typedef struct
   float pressure;    /* in mbar */
   float temperature; /* in °C   */
   float humidity;    /* in %    */
-  SensorAxesRaw_t magneto;
+  SensorAxes_t magneto;
   SensorAxes_t gyro;
   SensorAxes_t accelero;
   SensorAxesRaw_t accelero_raw;

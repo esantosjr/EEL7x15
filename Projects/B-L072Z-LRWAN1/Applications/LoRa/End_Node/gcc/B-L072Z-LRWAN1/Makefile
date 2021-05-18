@@ -141,26 +141,41 @@ SRCS      += utilities.c
 # Drivers/BSP/Components
 SRCS      += HTS221_Driver.c
 SRCS      += HTS221_Driver_HL.c
-SRCS      += LPS25HB_Driver.c
-SRCS      += LPS25HB_Driver_HL.c
-SRCS      += LPS22HB_Driver.c
-SRCS      += LPS22HB_Driver_HL.c
 SRCS      += LIS3MDL_MAG_driver.c
 SRCS      += LIS3MDL_MAG_driver_HL.c
+SRCS      += LPS22HB_Driver.c
+SRCS      += LPS22HB_Driver_HL.c
+SRCS      += LPS25HB_Driver.c
+SRCS      += LPS25HB_Driver_HL.c
 SRCS      += LSM6DS0_ACC_GYRO_driver.c
 SRCS      += LSM6DS0_ACC_GYRO_driver_HL.c
 SRCS      += LSM6DS3_ACC_GYRO_driver.c
 SRCS      += LSM6DS3_ACC_GYRO_driver_HL.c
+SRCS      += LSM6DSL_ACC_GYRO_driver.c
+SRCS      += LSM6DSL_ACC_GYRO_driver_HL.c
+SRCS      += LSM303AGR_ACC_driver.c
+SRCS      += LSM303AGR_ACC_driver_HL.c
+SRCS      += LSM303AGR_MAG_driver.c
+SRCS      += LSM303AGR_MAG_driver_HL.c
 SRCS      += $(RADIO).c
 
 # Drivers/BSP/X_NUCLEO_IKS01A1
-SRCS      += x_nucleo_iks01a1.c
-SRCS      += x_nucleo_iks01a1_accelero.c
-SRCS      += x_nucleo_iks01a1_gyro.c
-SRCS      += x_nucleo_iks01a1_humidity.c
-SRCS      += x_nucleo_iks01a1_magneto.c
-SRCS      += x_nucleo_iks01a1_pressure.c
-SRCS      += x_nucleo_iks01a1_temperature.c
+# SRCS      += x_nucleo_iks01a1.c
+# SRCS      += x_nucleo_iks01a1_accelero.c
+# SRCS      += x_nucleo_iks01a1_gyro.c
+# SRCS      += x_nucleo_iks01a1_humidity.c
+# SRCS      += x_nucleo_iks01a1_magneto.c
+# SRCS      += x_nucleo_iks01a1_pressure.c
+# SRCS      += x_nucleo_iks01a1_temperature.c
+
+# Drivers/BSP/X_NUCLEO_IKS01A2
+SRCS      += x_nucleo_iks01a2.c
+SRCS      += x_nucleo_iks01a2_accelero.c
+SRCS      += x_nucleo_iks01a2_gyro.c
+SRCS      += x_nucleo_iks01a2_humidity.c
+SRCS      += x_nucleo_iks01a2_magneto.c
+SRCS      += x_nucleo_iks01a2_pressure.c
+SRCS      += x_nucleo_iks01a2_temperature.c
 
 # Drivers/BSP/...
 SRCS      += $(BOARD_LC).c
@@ -207,7 +222,8 @@ DEFS       = -D$(MCU_MC) -DUSE_HAL_DRIVER
 DEFS       += -DUSE_B_L072Z_LRWAN1
 DEFS       += -DREGION_AU915
 DEFS       += -DSENSOR_ENABLED
-DEFS       += -DX_NUCLEO_IKS01A1
+DEFS       += -DX_NUCLEO_IKS01A2
+# DEFS       += -DX_NUCLEO_IKS01A1
 
 # Debug specific definitions for semihosting
 DEFS       += -DUSE_DBPRINTF
@@ -217,16 +233,19 @@ INCS       = -I$(APP_ROOT)/inc
 INCS      += -I$(CORE_DIR)/inc
 INCS      += -I$(BSP_DIR)/$(BOARD_MC)
 INCS      += -I$(BSP_DIR)/CMWX1ZZABZ-0xx
-INCS      += -I$(BSP_DIR)/X_NUCLEO_IKS01A1
+INCS      += -I$(BSP_DIR)/X_NUCLEO_IKS01A2
+# INCS      += -I$(BSP_DIR)/X_NUCLEO_IKS01A1
 
 # Sensors
 INCS      += -I$(COMP_DIR)/Common
 INCS      += -I$(COMP_DIR)/hts221
-INCS      += -I$(COMP_DIR)/lps25hb
+INCS      += -I$(COMP_DIR)/lis3mdl
 INCS      += -I$(COMP_DIR)/lps22hb
+INCS      += -I$(COMP_DIR)/lps25hb
 INCS      += -I$(COMP_DIR)/lsm6ds0
 INCS      += -I$(COMP_DIR)/lsm6ds3
-INCS      += -I$(COMP_DIR)/lis3mdl
+INCS      += -I$(COMP_DIR)/lsm6dsl
+INCS      += -I$(COMP_DIR)/lsm303agr
 INCS      += -I$(COMP_DIR)/$(RADIO)
 
 INCS      += -I$(CMSIS_DIR)/Include
@@ -253,7 +272,8 @@ VPATH      = $(APP_ROOT)/src
 VPATH     += $(CORE_DIR)/src
 VPATH     += $(BSP_DIR)/$(BOARD_MC)
 VPATH     += $(BSP_DIR)/CMWX1ZZABZ-0xx
-VPATH     += $(BSP_DIR)/X_NUCLEO_IKS01A1
+VPATH     += $(BSP_DIR)/X_NUCLEO_IKS01A2
+# VPATH     += $(BSP_DIR)/X_NUCLEO_IKS01A1
 VPATH     += $(HAL_DIR)/Src
 VPATH     += $(DEV_DIR)/Source
 VPATH     += $(DEV_DIR)/Source/Templates
@@ -261,11 +281,13 @@ VPATH     += $(CMSIS_DIR)/Device/ST/STM32L0xx/Source/Templates
 
 # Components
 VPATH     += $(COMP_DIR)/hts221
-VPATH     += $(COMP_DIR)/lps25hb
+VPATH     += $(COMP_DIR)/lis3mdl
 VPATH     += $(COMP_DIR)/lps22hb
+VPATH     += $(COMP_DIR)/lps25hb
 VPATH     += $(COMP_DIR)/lsm6ds0
 VPATH     += $(COMP_DIR)/lsm6ds3
-VPATH     += $(COMP_DIR)/lis3mdl
+VPATH     += $(COMP_DIR)/lsm6dsl
+VPATH     += $(COMP_DIR)/lsm303agr
 VPATH     += $(COMP_DIR)/$(RADIO)
 
 # LoRaWAN

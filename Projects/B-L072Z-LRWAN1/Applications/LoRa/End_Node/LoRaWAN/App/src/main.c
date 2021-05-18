@@ -30,8 +30,8 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 
-#define LORAWAN_MAX_BAT   254
-#define LPP_APP_PORT 99
+#define LORAWAN_MAX_BAT 254
+#define LPP_APP_PORT    99
 #define MAG_LPF_FACTOR  0.4f
 #define ACC_LPF_FACTOR  0.1f
 
@@ -105,7 +105,7 @@ static void LORA_ConfirmClass(DeviceClass_t Class);
 /* call back when server needs endNode to send a frame*/
 static void LORA_TxNeeded(void);
 
-/* calculate MagValue from magneto value*/
+/* calculate heading from magneto value*/
 static void ConvertGaussToDegree(sensor_t *sensor_data);
 
 /* callback to get the battery level in % of full charge (254 full charge, 0 no charge)*/
@@ -153,7 +153,7 @@ static void OnTimerLedEvent(void *context);
 
 #endif
 
-float MagValue;
+float heading;
 SensorAxesRaw_t MAG_MIN = { 0XFE64, 0XE43B, 0 };
 SensorAxesRaw_t MAG_MAX = { 0X1987, 0, 0X1848 };
 SensorAxesRaw_t MAGNETO_Value_Old   = { 0, 0, 0 };
@@ -264,65 +264,12 @@ static void LORA_HasJoined(void)
 }
 
 static void ConvertGaussToDegree(sensor_t *sensor_data)
-{
-  float MAG_X_Comp, MAG_Y_Comp, ACC_X_Norm, ACC_Y_Norm, pitch, roll;
-  SensorAxesRaw_t magnetos  = { 0, 0, 0 };
-  SensorAxesRaw_t accelero  = { 0, 0, 0 };
-  
-  // Calculator MagValue
-  if ( sensor_data->magneto.AXIS_X < MAG_MIN.AXIS_X ) {
-    MAG_MIN.AXIS_X = sensor_data->magneto.AXIS_X;
-  }
-  if ( sensor_data->magneto.AXIS_Y < MAG_MIN.AXIS_Y ) {
-    MAG_MIN.AXIS_Y = sensor_data->magneto.AXIS_Y;
-  }
-  if ( sensor_data->magneto.AXIS_Z < MAG_MIN.AXIS_Z ) {
-    MAG_MIN.AXIS_Z = sensor_data->magneto.AXIS_Z;
-  }
-  if ( sensor_data->magneto.AXIS_X > MAG_MAX.AXIS_X ) {
-    MAG_MAX.AXIS_X = sensor_data->magneto.AXIS_X;
-  }
-  if ( sensor_data->magneto.AXIS_Y > MAG_MAX.AXIS_Y ) {
-    MAG_MAX.AXIS_Y = sensor_data->magneto.AXIS_Y;
-  }
-  if ( sensor_data->magneto.AXIS_Z > MAG_MAX.AXIS_Z ) {
-    MAG_MAX.AXIS_Z = sensor_data->magneto.AXIS_Z;
-  }
-  
-  magnetos.AXIS_X = ( sensor_data->magneto.AXIS_X * MAG_LPF_FACTOR + MAGNETO_Value_Old.AXIS_X * ( 1 - MAG_LPF_FACTOR ) );
-  magnetos.AXIS_Y = ( sensor_data->magneto.AXIS_Y * MAG_LPF_FACTOR + MAGNETO_Value_Old.AXIS_Y * ( 1 - MAG_LPF_FACTOR ) );
-  magnetos.AXIS_Z = ( sensor_data->magneto.AXIS_Z * MAG_LPF_FACTOR + MAGNETO_Value_Old.AXIS_Z * ( 1 - MAG_LPF_FACTOR ) );
-  
-  accelero.AXIS_X = ( sensor_data->accelero_raw.AXIS_X * ACC_LPF_FACTOR + ACCELERO_Value_Old.AXIS_X * ( 1 - ACC_LPF_FACTOR ) );
-  accelero.AXIS_Y = ( sensor_data->accelero_raw.AXIS_Y * ACC_LPF_FACTOR + ACCELERO_Value_Old.AXIS_Y * ( 1 - ACC_LPF_FACTOR ) );
-  accelero.AXIS_Z = ( sensor_data->accelero_raw.AXIS_Z * ACC_LPF_FACTOR + ACCELERO_Value_Old.AXIS_Z * ( 1 - ACC_LPF_FACTOR ) );
-  
-  MAGNETO_Value_Old   = magnetos;
-  ACCELERO_Value_Old  = accelero;
-  
-  magnetos.AXIS_X -= ( ( MAG_MIN.AXIS_X + MAG_MAX.AXIS_X ) / 2 );
-  magnetos.AXIS_Y -= ( ( MAG_MIN.AXIS_Y + MAG_MAX.AXIS_Y ) / 2 );
-  magnetos.AXIS_Z -= ( ( MAG_MIN.AXIS_Z + MAG_MAX.AXIS_Z ) / 2 );
-  
-  ACC_X_Norm = ( accelero.AXIS_X / sqrt( accelero.AXIS_X * accelero.AXIS_X + accelero.AXIS_Y * accelero.AXIS_Y + accelero.AXIS_Z * accelero.AXIS_Z ) );
-  ACC_Y_Norm = ( accelero.AXIS_Y / sqrt( accelero.AXIS_X * accelero.AXIS_X + accelero.AXIS_Y * accelero.AXIS_Y + accelero.AXIS_Z * accelero.AXIS_Z ) );
-  
-  pitch = ( asin( ACC_X_Norm ) );
-  roll  = ( -asin( ACC_Y_Norm / cos( pitch ) ) );
-  
-  MAG_X_Comp  = ( magnetos.AXIS_X * cos( pitch ) + magnetos.AXIS_Z * sin( pitch ) );
-  MAG_Y_Comp  = ( magnetos.AXIS_X * sin( roll ) * sin( pitch ) + magnetos.AXIS_Y * cos( roll ) + magnetos.AXIS_Z * sin( roll ) * cos( pitch ) );
-  
-  MagValue     = ( 180.0 * atan2( MAG_Y_Comp, MAG_X_Comp ) / M_PI );
-  
-  if ( ( MagValue <= -180.0 ) || ( MagValue >= 180.0 ) ) {
-    MagValue = 0.0;
-  }
-  else if ( ( MagValue > -180.0 ) && ( MagValue < 0.0 ) ) {
-    MagValue = 180 + MagValue;
-  }
-  else if ( ( MagValue < 180.0 ) && ( MagValue >= 0.0 ) ) {
-    MagValue = -( 180 - MagValue );
+{  
+  heading = ( 180.0 * atan2( sensor_data->magneto.AXIS_Y , sensor_data->magneto.AXIS_X  ) / M_PI );
+
+  if(heading < 0) 
+  {
+    heading += 360;
   }
 }
 
@@ -366,18 +313,18 @@ static void Send(void *context)
   PRINTF("Pressure: %.2f hPa\n", sensor_data.pressure);
   PRINTF("Accelerometer [x,y,z]: [%.2f g, %.2f g, %.2f g]\n", sensor_data.accelero.AXIS_X/1000.0, sensor_data.accelero.AXIS_Y/1000.0, sensor_data.accelero.AXIS_Z/1000.0);
   PRINTF("Gyroscope [x,y,z]: [%.2f dps, %.2f dps, %.2f dps]\n", sensor_data.gyro.AXIS_X/1000.0, sensor_data.gyro.AXIS_Y/1000.0, sensor_data.gyro.AXIS_Z/1000.0);
-  PRINTF("Magnetometer: %.2f degrees\n", MagValue);
+  PRINTF("Magnetometer: %.2f degrees\n", heading);
 
   temperature       = (int16_t)(sensor_data.temperature * 100);         /* in °C * 100 */
   pressure          = (uint16_t)(sensor_data.pressure * 10);            /* in hPa * 10 */
-  humidity          = (uint16_t)(sensor_data.humidity * 10);            /* in % *10     */
+  humidity          = (uint16_t)(sensor_data.humidity * 10);            /* in % *10    */
   accelero.AXIS_X   = (int16_t)( sensor_data.accelero.AXIS_X );
   accelero.AXIS_Y   = (int16_t)( sensor_data.accelero.AXIS_Y );
   accelero.AXIS_Z   = (int16_t)( sensor_data.accelero.AXIS_Z );
   gyro.AXIS_X       = (int16_t)( sensor_data.gyro.AXIS_X );
   gyro.AXIS_Y       = (int16_t)( sensor_data.gyro.AXIS_Y );
   gyro.AXIS_Z       = (int16_t)( sensor_data.gyro.AXIS_Z );
-  magneto           = (int16_t)( MagValue * 100 );
+  magneto           = (int16_t)( heading * 100 );
   uint32_t i = 0;
 
   batteryLevel = LORA_GetBatteryLevel(); /* 1 (very low) to 254 (fully charged) */
